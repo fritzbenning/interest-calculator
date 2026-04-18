@@ -34,6 +34,24 @@ export function tilgungFromMonthlyPayment(
   return (monthlyPayment * 12 * 100) / principal - annualRatePercent
 }
 
+/** Obergrenze der Rate für Slider (entspricht anfänglicher Tilgung 15 % p.a.). */
+const MORTGAGE_PAYMENT_MAX_TILGUNG_PCT = 15
+
+/** Zulässige monatliche Annuität: knapp über reiner Zinslast bis Bank-übliche Maximaltilgung. */
+export function mortgagePaymentSliderBounds(
+  principal: number,
+  annualRatePercent: number,
+): { min: number; max: number } {
+  if (principal <= 0) return { min: 0, max: 0 }
+  const min = Math.ceil((principal * annualRatePercent) / 100 / 12) + 1
+  const max = monthlyPaymentFromTilgung(
+    principal,
+    annualRatePercent,
+    MORTGAGE_PAYMENT_MAX_TILGUNG_PCT,
+  )
+  return { min, max: Math.max(min + 1, max) }
+}
+
 export type AmortizationResult = {
   totalInterest: number
   months: number
